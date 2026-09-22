@@ -1,252 +1,107 @@
-# Ignition IT/OT lab
+# Ignition IT/OT Lab
 
-A single command brings up an Ignition gateway with a database, an MQTT
-broker, and two device simulators feeding it live data. Everything runs
-in Docker on one machine and tears down cleanly.
+A self-contained lab for semiconductor and manufacturing integration on **Ignition 8.3**. It runs entirely in Docker on one machine. Two demos sit on top of the base stack:
 
-## What is in it
+1. **SECS/GEM to Ignition.** A simulated etch tool speaks SECS/GEM over HSMS. A Python GEM host bridges it to MQTT, and an Ignition operator screen sends remote commands back to the tool.
+2. **Vacuum pump UDT.** One `VacuumPump` User Defined Type drives three simulated dry pumps, with limits, health logic, alarms and history defined once and reused per pump.
 
-| Service | Image | Reach it at | Why it is here |
-| --- | --- | --- | --- |
-| `ignition` | `inductiveautomation/ignition:8.3.9` | http://localhost:8088 | The gateway |
-| `postgres` | `postgres:17` | `localhost:5432` | Tag history and SQL queries |
-| `emqx` | `emqx/emqx:6.2` | http://localhost:18083 | MQTT broker with a dashboard |
-| `opc-plc` | `mcr.microsoft.com/iotedge/opc-plc:2.15.5` | `opc.tcp://opc-plc:50000` | An OPC UA server to browse |
-| `line-sim` | `eclipse-mosquitto:2` | publishes to `lab/line1/*` | Fake line data on MQTT |
+Built by Christoph Viehoff, Automation and Controls Engineer, Portland, OR.
 
-## Start it
+![SECS/GEM operator screen](docs/images/secsgem-screen.png)
 
-You need Docker Desktop running. From this folder:
+## Architecture
 
-```
-docker compose up -d
-```
+```mermaid
+flowchart LR
+  subgraph OT["OT: equipment (simulated)"]
+    TOOL["Etch tool<br/>GEM equipment, HSMS :5000"]
+    PUMPS["Dry pumps PP1, LL1, TM1"]
+    OPC["OPC UA PLC sim"]
+    SPB["Sparkplug B edge node"]
+  end
+  BRIDGE["GEM host bridge<br/>Python secsgem"]
+  EMQX["EMQX broker<br/>fab/etch01/..."]
+  subgraph IGN["Ignition 8.3"]
+    ENGINE["MQTT Engine"]
+    TAGS["Tags and UDTs"]
+    PERSP["Perspective screens"]
+  end
+  PG[("PostgreSQL<br/>history and SQL")]
 
-First run pulls about 2 GB and the gateway takes a minute or two to
-finish commissioning. Watch it come up with:
-
-```
-docker compose logs -f ignition
-```
-
-When the log settles, open http://localhost:8088 and sign in with the
-credentials from `.env`, which start as `admin` and `labpassword1`.
-
-To stop everything but keep your work:
-
-```
-docker compose stop
-```
-
-To throw it all away, gateway config included, and start clean:
-
-```
-docker compose down -v
+  TOOL -->|"HSMS: S1F3, events, alarms"| BRIDGE
+  BRIDGE -->|JSON| EMQX
+  PUMPS -->|JSON| EMQX
+  SPB -->|Sparkplug B| EMQX
+  EMQX --> ENGINE --> TAGS --> PERSP
+  OPC -->|OPC UA| TAGS
+  TAGS --> PG
+  PERSP -.->|"cmd over MQTT, then S2F41"| BRIDGE
 ```
 
-## Licensing
+Every service is a container on one Docker network. The equipment side is simulated, but the protocols, topic structure and Ignition configuration match what a fab or plant uses.
 
-The gateway runs in trial mode. It works fully for two hours, then the
-gateway stops passing data until you reset the trial from the banner in
-the web UI. Resetting is one click and there is no limit on resets. Your
-projects and configuration are untouched by the timer.
+## Demo 1: SECS/GEM to Ignition
 
-If you would rather avoid the timer, get a free Maker Edition license
-from Inductive Automation, then add these two lines to `.env` and to the
-`ignition` environment block:
+| Piece | What it does |
+|---|---|
+| [`secsgem/equipment_sim.py`](secsgem/equipment_sim.py) | GEM equipment with 6 status variables, 2 data values, 5 collection events, an OverTemp alarm and START, STOP and PP_SELECT remote commands |
+| [`secsgem/host_bridge.py`](secsgem/host_bridge.py) | GEM host: polls S1F3, subscribes to events and alarms, publishes to MQTT, turns MQTT commands into S2F41 and returns HCACK |
+| [`secsgem-demo/SecsGemDemo`](secsgem-demo/SecsGemDemo) | Perspective view with a live flow diagram, process tiles, alarm tile and command buttons |
 
-```
-IGNITION_EDITION=MAKER
-IGNITION_LICENSE_KEY=your-key
-IGNITION_ACTIVATION_TOKEN=your-token
-```
+A command's round trip: button, MQTT `fab/etch01/cmd`, bridge, S2F41, tool replies S2F42 HCACK 4, new state appears on the next poll within about 2 seconds.
 
-Maker is free for personal, non commercial use, which is what this lab
-is. It includes Perspective and the historian, which is most of what you
-would want to practice on.
+Details: [SECS-GEM-Ignition-Demo.pdf](secsgem-demo/SECS-GEM-Ignition-Demo.pdf)
 
-## Connect Ignition to the database
+## Demo 2: Vacuum pump UDT
 
-The containers talk to each other by service name on a private network,
-so the host is `postgres`, not `localhost`.
+![Vacuum pump overview](docs/images/pump-overview.png)
 
-In the gateway, go to Config, then Databases, then Connections, and
-create a new PostgreSQL connection:
+| Piece | What it does |
+|---|---|
+| [`pump-demo/1-VacuumPump-UDT.json`](pump-demo/1-VacuumPump-UDT.json) | The UDT: 4 parameters, 11 reference tags, overridable limits, 7 alarm tags, Health and load percentage |
+| [`pump-demo/2-Pump-instances.json`](pump-demo/2-Pump-instances.json) | Three instances. LL1 and TM1 override the current limits. |
+| [`pump-demo/pump-sim/pump_sim.py`](pump-demo/pump-sim/pump_sim.py) | Dry pump simulator with bearing wear, loss of cooling, trip and service-due scenarios. It also reacts to the etch tool's process load. |
+| [`pump-demo/views/Pumps`](pump-demo/views/Pumps) | A PumpCard view that takes one instance path, and an overview that finds every instance by itself |
 
-| Field | Value |
-| --- | --- |
-| Name | `postgres` |
-| Connect URL | `jdbc:postgresql://postgres:5432/ignition` |
-| Username | `ignition` |
-| Password | `ignition` |
+Adding a pump means adding one UDT instance. The screen, alarms and history follow with no view changes.
 
-The PostgreSQL JDBC driver ships with Ignition, so there is nothing to
-install. Save it and the status should go to Valid within a few seconds.
+Details: [VacuumPump-UDT-Showcase.pdf](pump-demo/VacuumPump-UDT-Showcase.pdf)
 
-The database already has a `lab` schema with a `machine_state` table and
-a `downtime_reason` lookup, seeded with a handful of rows. Try a named
-query against it before you wire up anything real:
+## Run it
 
-```sql
-SELECT machine, state, temp_c, speed_rpm, recorded_at
-FROM lab.machine_state
-ORDER BY recorded_at DESC
-LIMIT 20;
+Needs Docker Desktop and the free Cirrus Link MQTT Engine module (see [`modules/README.md`](modules/README.md)).
+
+```powershell
+copy .env.example .env        # then set the passwords
+docker compose -f docker-compose.yml -f compose.mqtt-modules.yml -f docker-compose.secsgem.yml -f pump-demo/docker-compose.pump.yml up -d --build
 ```
 
-If you want to poke at the database directly:
+Then open http://localhost:8088. To load the demos into a project:
 
-```
-docker compose exec postgres psql -U ignition -d ignition
-```
+* SECS/GEM view: `.\import-secsgem-view.ps1 -Project <name>`
+* Pump tags: in the Designer, import `pump-demo/1-VacuumPump-UDT.json` in the UDT Definitions tab, then `2-Pump-instances.json` in the Tags tab
+* Pump views: `.\pump-demo\import-views.ps1 -Project <name>`
 
-## Connect Ignition to the OPC UA simulator
+Full setup for the base stack (database, OPC UA, MQTT, licensing, troubleshooting) is in [docs/LAB-SETUP.md](docs/LAB-SETUP.md).
 
-Go to Config, then OPC Client, then OPC Connections, and add an OPC UA
-connection with this endpoint:
+![Perspective Workstation](docs/images/workstation.png)
 
-```
-opc.tcp://opc-plc:50000
-```
+## Problems solved along the way
 
-Choose the `None` security policy and anonymous authentication. The
-simulator is started with `--autoaccept` and `--unsecuretransport` so it
-will take the connection without a certificate exchange.
+| Symptom | Cause | Fix |
+|---|---|---|
+| Bridge could not reach the broker | Overlay services joined Compose's default network, not the lab network | Put every service on the shared `lab` network |
+| Flow diagram showed a quality error | One wrong tag path (`status/online/value`) made the whole expression bad quality | Corrected the path to match the JSON payload |
+| Buttons reported "sent" but nothing happened | Publish targeted server `emqx`, but MQTT Engine names it `Chariot SCADA`, and no error was raised | Server name moved to one view property, checked with `mosquitto_sub` and the bridge log |
+| UDT alarms missing after import | Ignition 8.3 silently dropped the alarm list because of one unsupported field | Exported a hand-made alarm to learn the exact format, then rebuilt the file |
+| CoolingLow flickered on every pump start | Running and CoolingFlow arrive as separate MQTT messages | Active delay on the alarm in the UDT, applied to every pump at once |
 
-Once it is connected, browse it in the OPC Browser. You get fast nodes
-that change every second, slow nodes that change every ten seconds, and
-a few others. Drag some into a tag provider and you have live tags.
+## Stack
 
-If the connection fails with a complaint about the endpoint URL, the
-simulator is advertising a hostname Ignition cannot resolve. Uncomment
-the `--ph=opc-plc` line in `docker-compose.yml` and run
-`docker compose up -d opc-plc`.
+Ignition 8.3.9 (Perspective, UDTs, alarming, MQTT Engine) · EMQX 6.2 · PostgreSQL 17 · Python with secsgem and paho-mqtt · Microsoft OPC PLC simulator · Docker Compose · PowerShell
 
-## Look at the MQTT traffic
+## Notes
 
-The EMQX dashboard is at http://localhost:18083. Sign in with `admin`
-and the password from `.env`, which starts as `labpassword1`. EMQX may
-ask you to change it on first login.
-
-Under Diagnose, then WebSocket, subscribe to `lab/line1/#` and you will
-see the simulator publishing every two seconds. Payloads look like:
-
-```json
-{"seq":412,"temp_c":64.18,"pressure_bar":2.031,"speed_rpm":121.4,"running":true}
-```
-
-### Birth and death certificates
-
-Each machine is its own MQTT client holding one connection open, with a
-stable client ID like `lab-line1-mixer`. You will see all three on the
-Clients page.
-
-On startup each one publishes a retained `online` to its own status
-topic, which is its birth certificate. Each also registers a last will
-with the broker, so if the connection dies without a clean disconnect
-the broker publishes a retained `offline` on that same topic on the
-client's behalf.
-
-```
-lab/line1/mixer/status     online | offline, retained
-lab/line1/filler/status    online | offline, retained
-lab/line1/capper/status    online | offline, retained
-lab/line1/status           line level heartbeat, retained
-```
-
-Subscribe to `lab/line1/+/status` and then kill the simulator the hard
-way to watch it happen:
-
-```
-docker kill ignition-line-sim
-```
-
-Three `offline` messages appear within a second or two, published by the
-broker, not by the dead container. That is the mechanism behind every
-"device offline" indicator in a real MQTT architecture, and it is why
-a subscriber can know a machine died rather than just going quiet.
-Because the messages are retained, a subscriber connecting an hour later
-still learns the machine is down.
-
-A clean `docker compose stop line-sim` publishes `offline` itself before
-disconnecting, so the will never fires. The difference between the two
-is worth seeing.
-
-You can also subscribe from the command line:
-
-```
-docker compose exec emqx emqx ctl listeners
-docker run --rm --network ignition-lab eclipse-mosquitto:2 \
-  mosquitto_sub -h emqx -t 'lab/line1/#' -v
-```
-
-Anonymous connections are allowed because no authenticator is
-configured. That is fine for a lab and wrong for anything else, so if
-you want to practice locking it down, add a password based authenticator
-in the dashboard under Access Control.
-
-## Getting MQTT into Ignition
-
-This is the one piece that needs a manual download. Ignition has no
-built in MQTT client. The Cirrus Link modules fill that gap and they are
-a free download, but they are not part of the Ignition image.
-
-Download MQTT Engine, currently v5.0.4 for Ignition 8.3:
-
-```
-https://releases.inductiveautomation.com/third-party/cirrus-link/5.0.4/MQTT-Engine-signed.modl
-```
-
-Save it into the `modules/` folder without renaming it, then start the
-stack with the overlay:
-
-```
-docker compose -f docker-compose.yml -f compose.mqtt-modules.yml up -d
-```
-
-MQTT Engine appears under Config, then MQTT Engine, then Settings. Point
-it at server `tcp://emqx:1883` and it will start turning payloads into
-tags under a new tag provider.
-
-Worth knowing: MQTT Engine expects Sparkplug B by default. The simulator
-publishes plain JSON, so set the namespace to a custom one and configure
-the JSON parsing, or switch the simulator to Sparkplug if you want to
-learn that specifically. Plain JSON is the more common thing to meet in
-the field.
-
-## Changing ports and passwords
-
-Everything adjustable lives in `.env`. If port 8088 or 5432 is already
-taken on your machine, change the host side there and run
-`docker compose up -d` again. The container side ports never change, so
-the service names and internal ports in the connection strings above
-stay the same no matter what you do to the host ports.
-
-## Where your work lives
-
-Gateway configuration, projects, and tags live in the `ignition-data`
-Docker volume, not in this folder. That means your projects survive
-`docker compose down` but not `docker compose down -v`.
-
-Back up properly from the gateway itself, under Config, then Backup and
-Restore. That gives you a `.gwbk` you can restore anywhere, which is the
-file you would hand to someone else or commit alongside this repo.
-
-## Troubleshooting
-
-**Ignition container restarts in a loop.** Check the logs with
-`docker compose logs ignition`. The usual cause is a memory setting
-higher than Docker Desktop is allowed to use. Lower `IGNITION_MAX_MEMORY`
-in `.env` or raise the Docker Desktop memory limit.
-
-**line-sim exits immediately with a "not found" error.** The script got
-saved with Windows line endings. Convert `sim/line-sim.sh` back to LF.
-The included `.gitattributes` prevents this once the folder is in git.
-
-**Database connection shows Faulted.** Check that you used `postgres` as
-the host and not `localhost`. Inside the Ignition container, `localhost`
-is the gateway itself.
-
-**Nothing on the EMQX dashboard.** Give it thirty seconds after startup.
-EMQX has a health check and `line-sim` waits for it, so the first
-publish lands a little after the broker is up.
+* All equipment is simulated. No vendor code or customer data is included.
+* The Cirrus Link modules and gateway backups are not in the repo for licensing and size reasons.
+* The gateway runs in Ignition trial mode, which resets every two hours.
