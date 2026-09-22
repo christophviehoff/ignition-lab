@@ -1,0 +1,62 @@
+# SECS/GEM overlay for the Ignition lab
+#   docker compose -f docker-compose.yml -f docker-compose.secsgem.yml up -d --build
+#
+# All three services join the lab network so they can reach emqx and
+# Ignition can reach secsgem-equipment-ign by name.
+
+services:
+  secsgem-equipment:
+    build: ./secsgem
+    image: lab/secsgem:latest
+    container_name: secsgem-equipment
+    hostname: secsgem-equipment
+    command: ["python", "equipment_sim.py"]
+    environment:
+      HSMS_PORT: "5000"
+      AUTO_START: "true"
+      TZ: "${TZ:-America/Los_Angeles}"
+    ports:
+      - "${SECSGEM_PORT:-5000}:5000"
+    restart: unless-stopped
+    networks:
+      - lab
+
+  secsgem-bridge:
+    image: lab/secsgem:latest
+    pull_policy: never            # built locally by secsgem-equipment
+    container_name: secsgem-bridge
+    hostname: secsgem-bridge
+    command: ["python", "host_bridge.py"]
+    environment:
+      TOOL_ID: etch01
+      EQUIPMENT_HOST: secsgem-equipment
+      HSMS_PORT: "5000"
+      MQTT_HOST: emqx
+      MQTT_PORT: "1883"
+      POLL_SECONDS: "2"
+      TZ: "${TZ:-America/Los_Angeles}"
+    depends_on:
+      secsgem-equipment:
+        condition: service_started
+      emqx:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - lab
+
+  # Second tool left free for Ignition's SECS/GEM module to connect to as host
+  secsgem-equipment-ign:
+    image: lab/secsgem:latest
+    pull_policy: never            # built locally by secsgem-equipment
+    container_name: secsgem-equipment-ign
+    hostname: secsgem-equipment-ign
+    command: ["python", "equipment_sim.py"]
+    environment:
+      HSMS_PORT: "5001"
+      AUTO_START: "true"
+      TZ: "${TZ:-America/Los_Angeles}"
+    ports:
+      - "${SECSGEM_IGN_PORT:-5001}:5001"
+    restart: unless-stopped
+    networks:
+      - lab

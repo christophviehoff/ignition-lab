@@ -1,0 +1,35 @@
+syntax = "proto2";
+
+package sparkplugb;
+
+// Minimal subset of the Sparkplug B payload definition.
+// Field numbers match the Eclipse Sparkplug specification, so payloads encoded
+// here decode correctly in Ignition MQTT Engine and any other conforming host.
+// Templates, datasets, metadata and property sets are omitted because this
+// simulator does not use them; omitted fields simply do not appear on the wire.
+
+message Metric {
+  optional string name          = 1;
+  optional uint64 alias         = 2;
+  optional uint64 timestamp     = 3;
+  optional uint32 datatype      = 4;
+  optional bool   is_historical = 5;
+  optional bool   is_transient  = 6;
+  optional bool   is_null       = 7;
+
+  optional uint32 int_value     = 10;
+  optional uint64 long_value    = 11;
+  optional float  float_value   = 12;
+  optional double double_value  = 13;
+  optional bool   boolean_value = 14;
+  optional string string_value  = 15;
+  optional bytes  bytes_value   = 16;
+}
+
+message Payload {
+  optional uint64 timestamp = 1;
+  repeated Metric metrics   = 2;
+  optional uint64 seq       = 3;
+  optional string uuid      = 4;
+  optional bytes  body      = 5;
+}

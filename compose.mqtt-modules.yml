@@ -1,0 +1,29 @@
+# Optional overlay: installs the Cirrus Link MQTT modules into Ignition.
+#
+# Ignition has no built in MQTT client. To subscribe to the broker from
+# the gateway you need the Cirrus Link modules, which are a free
+# download but are not part of the Ignition image.
+#
+# 1. Download the modules. Direct links for v5.0.4 (Ignition 8.3):
+#      https://releases.inductiveautomation.com/third-party/cirrus-link/5.0.4/MQTT-Engine-signed.modl
+#      https://releases.inductiveautomation.com/third-party/cirrus-link/5.0.4/MQTT-Transmission-signed.modl
+#    Engine alone is enough to read the broker into tags.
+# 2. Drop the .modl files into the modules/ folder next to this file.
+# 3. Start the stack with both files:
+#
+#      docker compose -f docker-compose.yml -f compose.mqtt-modules.yml up -d
+#
+# The ACCEPT_MODULE_LICENSES and ACCEPT_MODULE_CERTS variables take the
+# module IDs, not the file names. They let the gateway load the modules
+# without a click through on the license and certificate prompts.
+
+services:
+  ignition:
+    environment:
+      ACCEPT_MODULE_LICENSES: "com.cirruslink.mqtt.engine.gateway,com.cirruslink.mqtt.transmission.gateway"
+      ACCEPT_MODULE_CERTS: "com.cirruslink.mqtt.engine.gateway,com.cirruslink.mqtt.transmission.gateway"
+    volumes:
+      # Anything in this folder is picked up on startup. Adjust the file
+      # names to match exactly what you downloaded.
+      - ./modules/MQTT-Engine-signed.modl:/usr/local/bin/ignition/user-lib/modules/MQTT-Engine-signed.modl:ro
+      - ./modules/MQTT-Transmission-signed.modl:/usr/local/bin/ignition/user-lib/modules/MQTT-Transmission-signed.modl:ro

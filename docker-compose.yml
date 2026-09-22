@@ -1,0 +1,187 @@
+name: ignition-lab
+
+# Ignition IT/OT learning lab
+#   ignition   SCADA gateway          http://localhost:8088
+#   postgres   tag history + SQL      localhost:5433
+#   emqx       MQTT broker            http://localhost:18083 (dashboard), 1883 (mqtt)
+#   opc-plc    OPC UA device sim      opc.tcp://opc-plc:50000
+#   line-sim   MQTT device sim        publishes to lab/line1/*
+#   sparkplug-sim  Sparkplug B edge node  spBv1.0/Lab/+/Line1/Packer
+#
+# Everything is tuned for a single machine lab. Do not use these
+# passwords anywhere real.
+
+services:
+
+  # ---------------------------------------------------------------
+  # Ignition gateway
+  # ---------------------------------------------------------------
+  ignition:
+    image: inductiveautomation/ignition:${IGNITION_VERSION:-8.3.9}
+    container_name: ignition
+    hostname: ignition
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      - "${IGNITION_HTTP_PORT:-8088}:8088"
+      - "${IGNITION_HTTPS_PORT:-8043}:8043"
+    environment:
+      # Required. Accepts the Inductive Automation license agreement.
+      ACCEPT_IGNITION_EULA: "Y"
+      GATEWAY_SYSTEM_NAME: "${GATEWAY_NAME:-ignition-lab}"
+      GATEWAY_ADMIN_USERNAME: "${IGNITION_ADMIN_USER:-admin}"
+      GATEWAY_ADMIN_PASSWORD: "${IGNITION_ADMIN_PASSWORD:-password}"
+      GATEWAY_INIT_MEMORY: "${IGNITION_INIT_MEMORY:-512}"
+      GATEWAY_MAX_MEMORY: "${IGNITION_MAX_MEMORY:-2048}"
+      TZ: "${TZ:-America/Los_Angeles}"
+    volumes:
+      - ignition-data:/usr/local/bin/ignition/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lab
+
+  # ---------------------------------------------------------------
+  # PostgreSQL
+  # ---------------------------------------------------------------
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-17}
+    container_name: ignition-postgres
+    hostname: postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-ignition}"
+      POSTGRES_USER: "${POSTGRES_USER:-ignition}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-ignition}"
+      TZ: "${TZ:-America/Los_Angeles}"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Runs only on the very first start, while the volume is empty.
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ignition} -d ${POSTGRES_DB:-ignition}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    networks:
+      - lab
+
+  # ---------------------------------------------------------------
+  # EMQX MQTT broker
+  # ---------------------------------------------------------------
+  emqx:
+    image: emqx/emqx:${EMQX_VERSION:-6.2}
+    container_name: ignition-emqx
+    hostname: emqx
+    restart: unless-stopped
+    ports:
+      - "${MQTT_PORT:-1883}:1883"
+      - "${MQTT_WS_PORT:-8083}:8083"
+      - "${EMQX_DASHBOARD_PORT:-18083}:18083"
+    environment:
+      EMQX_NODE__NAME: "emqx@127.0.0.1"
+      EMQX_NODE__COOKIE: "${EMQX_COOKIE:-ignition-lab-cookie}"
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: "${EMQX_DASHBOARD_PASSWORD:-public}"
+      TZ: "${TZ:-America/Los_Angeles}"
+    volumes:
+      - emqx-data:/opt/emqx/data
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - lab
+
+  # ---------------------------------------------------------------
+  # OPC UA device simulator
+  # Gives Ignition a real OPC UA server to browse and subscribe to.
+  # ---------------------------------------------------------------
+  opc-plc:
+    image: mcr.microsoft.com/iotedge/opc-plc:${OPC_PLC_VERSION:-2.15.5}
+    container_name: ignition-opc-plc
+    hostname: opc-plc
+    restart: unless-stopped
+    ports:
+      - "${OPC_UA_PORT:-50000}:50000"
+    command:
+      - "--pn=50000"           # listen port
+      - "--autoaccept"         # trust client certs automatically (lab only)
+      - "--unsecuretransport"  # allow the None security policy
+      - "--sph"                # publish the endpoint on a status node
+      - "--fn=5"               # 5 fast-changing nodes
+      - "--fr=1"               # fast nodes update every 1s
+      - "--ft=uint"
+      - "--sn=5"               # 5 slow-changing nodes
+      - "--sr=10"              # slow nodes update every 10s
+      - "--st=uint"
+      - "--gn=5"               # 5 GUID-addressed nodes
+      # If Ignition reports a bad endpoint URL, uncomment the next line.
+      # It forces the advertised hostname to match the compose service.
+      # - "--ph=opc-plc"
+    networks:
+      - lab
+
+  # ---------------------------------------------------------------
+  # MQTT device simulator
+  # Publishes JSON payloads so the broker has live traffic.
+  # ---------------------------------------------------------------
+  line-sim:
+    image: eclipse-mosquitto:${MOSQUITTO_VERSION:-2}
+    container_name: ignition-line-sim
+    hostname: line-sim
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/sim/line-sim.sh"]
+    environment:
+      MQTT_HOST: "emqx"
+      MQTT_PORT: "1883"
+      MQTT_BASE_TOPIC: "${MQTT_BASE_TOPIC:-lab/line1}"
+      SIM_INTERVAL: "${SIM_INTERVAL:-2}"
+    volumes:
+      - ./sim:/sim:ro
+    depends_on:
+      emqx:
+        condition: service_healthy
+    networks:
+      - lab
+
+  # ---------------------------------------------------------------
+  # Sparkplug B device simulator
+  # Publishes birth certificates and DDATA so MQTT Engine builds tags.
+  # ---------------------------------------------------------------
+  sparkplug-sim:
+    build: ./sparkplug-sim
+    container_name: ignition-sparkplug-sim
+    hostname: sparkplug-sim
+    restart: unless-stopped
+    environment:
+      MQTT_HOST: "emqx"
+      MQTT_PORT: "1883"
+      SP_GROUP_ID: "${SP_GROUP_ID:-Lab}"
+      SP_NODE_ID: "${SP_NODE_ID:-Line1}"
+      SP_DEVICE_ID: "${SP_DEVICE_ID:-Packer}"
+      SIM_INTERVAL: "${SIM_INTERVAL:-2}"
+      SIM_DEADBAND: "${SIM_DEADBAND:-0.5}"
+      TZ: "${TZ:-America/Los_Angeles}"
+    depends_on:
+      emqx:
+        condition: service_healthy
+    networks:
+      - lab
+
+networks:
+  lab:
+    name: ignition-lab
+
+volumes:
+  ignition-data:
+    name: ignition-lab-ignition-data
+  postgres-data:
+    name: ignition-lab-postgres-data
+  emqx-data:
+    name: ignition-lab-emqx-data

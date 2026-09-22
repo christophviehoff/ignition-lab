@@ -1,0 +1,149 @@
+{
+  "custom": {},
+  "params": {
+    "root": "[default]Fab",
+    "mqttServer": "Chariot SCADA"
+  },
+  "propConfig": {
+    "params.root": {
+      "paramDirection": "input",
+      "persistent": true
+    },
+    "params.mqttServer": {
+      "paramDirection": "input",
+      "persistent": true
+    }
+  },
+  "props": {
+    "defaultSize": {
+      "width": 1180,
+      "height": 820
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "version": 0,
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "backgroundColor": "#f2f2f2"
+      }
+    },
+    "children": [
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "header"
+        },
+        "props": {
+          "direction": "row",
+          "style": {
+            "padding": "8px 12px",
+            "backgroundColor": "#ffffff",
+            "borderBottom": "1px solid #dcdcdc"
+          },
+          "alignItems": "center"
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "title"
+            },
+            "props": {
+              "text": "Vacuum pumps",
+              "style": {
+                "fontSize": "20px",
+                "fontWeight": 500
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "sub"
+            },
+            "props": {
+              "text": "one VacuumPump UDT, every instance found automatically",
+              "style": {
+                "fontSize": "12px",
+                "color": "#6b6b6b",
+                "marginLeft": "14px"
+              }
+            }
+          }
+        ],
+        "position": {
+          "basis": "52px",
+          "shrink": 0
+        }
+      },
+      {
+        "type": "ia.display.flex-repeater",
+        "version": 0,
+        "meta": {
+          "name": "pumps"
+        },
+        "position": {
+          "shrink": 0
+        },
+        "props": {
+          "path": "Pumps/PumpCard",
+          "direction": "row",
+          "wrap": "wrap",
+          "instances": [],
+          "elementPosition": {
+            "basis": "360px",
+            "grow": 0,
+            "shrink": 0
+          },
+          "elementStyle": {
+            "margin": "8px"
+          },
+          "style": {
+            "padding": "4px"
+          }
+        },
+        "propConfig": {
+          "props.instances": {
+            "binding": {
+              "type": "expr",
+              "config": {
+                "expression": "now(15000)"
+              },
+              "transforms": [
+                {
+                  "type": "script",
+                  "code": "\tinstances = []\n\tserver = self.view.params.mqttServer\n\n\tdef walk(path):\n\t\tfor r in system.tag.browse(path).getResults():\n\t\t\tfull = str(r[\"fullPath\"])\n\t\t\tname = str(r[\"name\"])\n\t\t\ttagType = str(r[\"tagType\"])\n\t\t\tif name == \"_types_\":\n\t\t\t\tcontinue\n\t\t\tif tagType == \"UdtInstance\":\n\t\t\t\tif system.tag.exists(full + \"/Info/CmdTopic\") and system.tag.exists(full + \"/Health\"):\n\t\t\t\t\tinstances.append({\"pumpPath\": full, \"mqttServer\": server})\n\t\t\telif r[\"hasChildren\"]:\n\t\t\t\twalk(full)\n\n\twalk(self.view.params.root)\n\treturn instances\n"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "type": "ia.display.alarmstatustable",
+        "version": 0,
+        "meta": {
+          "name": "alarms"
+        },
+        "position": {
+          "basis": "260px",
+          "grow": 1
+        },
+        "props": {
+          "style": {
+            "margin": "8px",
+            "backgroundColor": "#ffffff"
+          }
+        }
+      }
+    ]
+  }
+}

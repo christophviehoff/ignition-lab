@@ -1,0 +1,1469 @@
+{
+  "custom": {},
+  "params": {
+    "pumpPath": "[default]Fab/etch01/Pumps/PP1",
+    "mqttServer": "Chariot SCADA"
+  },
+  "propConfig": {
+    "params.pumpPath": {
+      "paramDirection": "input",
+      "persistent": true
+    },
+    "params.mqttServer": {
+      "paramDirection": "input",
+      "persistent": true
+    }
+  },
+  "props": {
+    "defaultSize": {
+      "width": 360,
+      "height": 400
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "version": 0,
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "backgroundColor": "#ffffff",
+        "border": "1px solid #dcdcdc",
+        "borderRadius": "8px",
+        "overflow": "hidden"
+      }
+    },
+    "children": [
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "header"
+        },
+        "props": {
+          "direction": "row",
+          "style": {
+            "padding": "8px 10px",
+            "borderBottom": "1px solid #e3e3e3",
+            "overflow": "hidden"
+          },
+          "alignItems": "center"
+        },
+        "children": [
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "names"
+            },
+            "props": {
+              "direction": "column"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "id"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "18px",
+                    "fontWeight": 600
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "indirect",
+                        "references": {
+                          "p": "{view.params.pumpPath}"
+                        },
+                        "tagPath": "{p}/Info/PumpID"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "role"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "indirect",
+                        "references": {
+                          "p": "{view.params.pumpPath}"
+                        },
+                        "tagPath": "{p}/Info/Role"
+                      },
+                      "transforms": [
+                        {
+                          "type": "expression",
+                          "expression": "{value} + \" pump\""
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "spacer"
+            },
+            "props": {
+              "text": ""
+            },
+            "position": {
+              "grow": 1
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "health"
+            },
+            "props": {
+              "text": "--",
+              "style": {
+                "fontSize": "13px",
+                "fontWeight": 600,
+                "padding": "4px 12px",
+                "borderRadius": "12px",
+                "backgroundColor": "#dcdcdc"
+              }
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "type": "tag",
+                  "config": {
+                    "fallbackDelay": 2.5,
+                    "mode": "indirect",
+                    "references": {
+                      "p": "{view.params.pumpPath}"
+                    },
+                    "tagPath": "{p}/Health"
+                  }
+                }
+              },
+              "props.style.backgroundColor": {
+                "binding": {
+                  "type": "tag",
+                  "config": {
+                    "fallbackDelay": 2.5,
+                    "mode": "indirect",
+                    "references": {
+                      "p": "{view.params.pumpPath}"
+                    },
+                    "tagPath": "{p}/Health"
+                  },
+                  "transforms": [
+                    {
+                      "type": "expression",
+                      "expression": "case({value}, \"OK\", \"#8fd6ad\", \"WARN\", \"#f5d27a\", \"ALARM\", \"#f0a6a6\", \"TRIPPED\", \"#d9534f\", \"STOPPED\", \"#dcdcdc\", \"#dcdcdc\")"
+                    }
+                  ]
+                }
+              },
+              "props.style.color": {
+                "binding": {
+                  "type": "tag",
+                  "config": {
+                    "fallbackDelay": 2.5,
+                    "mode": "indirect",
+                    "references": {
+                      "p": "{view.params.pumpPath}"
+                    },
+                    "tagPath": "{p}/Health"
+                  },
+                  "transforms": [
+                    {
+                      "type": "expression",
+                      "expression": "if({value} = \"TRIPPED\", \"#ffffff\", \"#222222\")"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "position": {
+          "basis": "64px",
+          "shrink": 0
+        }
+      },
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "metrics"
+        },
+        "props": {
+          "direction": "row",
+          "style": {
+            "padding": "4px 8px"
+          },
+          "wrap": "wrap",
+          "justify": "space-between"
+        },
+        "children": [
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "m_Speed"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "padding": "4px 6px"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Speed",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.container.flex",
+                "version": 0,
+                "meta": {
+                  "name": "row"
+                },
+                "props": {
+                  "direction": "row",
+                  "alignItems": "baseline"
+                },
+                "children": [
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "value"
+                    },
+                    "props": {
+                      "text": "--",
+                      "style": {
+                        "fontSize": "18px",
+                        "fontWeight": 500
+                      }
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "type": "tag",
+                          "config": {
+                            "fallbackDelay": 2.5,
+                            "mode": "indirect",
+                            "references": {
+                              "p": "{view.params.pumpPath}"
+                            },
+                            "tagPath": "{p}/Speed"
+                          },
+                          "transforms": [
+                            {
+                              "type": "expression",
+                              "expression": "numberFormat({value}, \"0.0\")"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "unit"
+                    },
+                    "props": {
+                      "text": "Hz",
+                      "style": {
+                        "fontSize": "11px",
+                        "color": "#6b6b6b",
+                        "marginLeft": "4px"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "position": {
+              "basis": "48%",
+              "grow": 0,
+              "shrink": 0
+            }
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "m_MotorCurrent"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "padding": "4px 6px"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Motor current",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.container.flex",
+                "version": 0,
+                "meta": {
+                  "name": "row"
+                },
+                "props": {
+                  "direction": "row",
+                  "alignItems": "baseline"
+                },
+                "children": [
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "value"
+                    },
+                    "props": {
+                      "text": "--",
+                      "style": {
+                        "fontSize": "18px",
+                        "fontWeight": 500
+                      }
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "type": "tag",
+                          "config": {
+                            "fallbackDelay": 2.5,
+                            "mode": "indirect",
+                            "references": {
+                              "p": "{view.params.pumpPath}"
+                            },
+                            "tagPath": "{p}/MotorCurrent"
+                          },
+                          "transforms": [
+                            {
+                              "type": "expression",
+                              "expression": "numberFormat({value}, \"0.00\")"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "unit"
+                    },
+                    "props": {
+                      "text": "A",
+                      "style": {
+                        "fontSize": "11px",
+                        "color": "#6b6b6b",
+                        "marginLeft": "4px"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "position": {
+              "basis": "48%",
+              "grow": 0,
+              "shrink": 0
+            }
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "m_MotorPower"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "padding": "4px 6px"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Power",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.container.flex",
+                "version": 0,
+                "meta": {
+                  "name": "row"
+                },
+                "props": {
+                  "direction": "row",
+                  "alignItems": "baseline"
+                },
+                "children": [
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "value"
+                    },
+                    "props": {
+                      "text": "--",
+                      "style": {
+                        "fontSize": "18px",
+                        "fontWeight": 500
+                      }
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "type": "tag",
+                          "config": {
+                            "fallbackDelay": 2.5,
+                            "mode": "indirect",
+                            "references": {
+                              "p": "{view.params.pumpPath}"
+                            },
+                            "tagPath": "{p}/MotorPower"
+                          },
+                          "transforms": [
+                            {
+                              "type": "expression",
+                              "expression": "numberFormat({value}, \"0.00\")"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "unit"
+                    },
+                    "props": {
+                      "text": "kW",
+                      "style": {
+                        "fontSize": "11px",
+                        "color": "#6b6b6b",
+                        "marginLeft": "4px"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "position": {
+              "basis": "48%",
+              "grow": 0,
+              "shrink": 0
+            }
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "m_BodyTemp"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "padding": "4px 6px"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Body temp",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.container.flex",
+                "version": 0,
+                "meta": {
+                  "name": "row"
+                },
+                "props": {
+                  "direction": "row",
+                  "alignItems": "baseline"
+                },
+                "children": [
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "value"
+                    },
+                    "props": {
+                      "text": "--",
+                      "style": {
+                        "fontSize": "18px",
+                        "fontWeight": 500
+                      }
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "type": "tag",
+                          "config": {
+                            "fallbackDelay": 2.5,
+                            "mode": "indirect",
+                            "references": {
+                              "p": "{view.params.pumpPath}"
+                            },
+                            "tagPath": "{p}/BodyTemp"
+                          },
+                          "transforms": [
+                            {
+                              "type": "expression",
+                              "expression": "numberFormat({value}, \"0.0\")"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "unit"
+                    },
+                    "props": {
+                      "text": "degC",
+                      "style": {
+                        "fontSize": "11px",
+                        "color": "#6b6b6b",
+                        "marginLeft": "4px"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "position": {
+              "basis": "48%",
+              "grow": 0,
+              "shrink": 0
+            }
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "m_CoolingFlow"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "padding": "4px 6px"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Cooling water",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.container.flex",
+                "version": 0,
+                "meta": {
+                  "name": "row"
+                },
+                "props": {
+                  "direction": "row",
+                  "alignItems": "baseline"
+                },
+                "children": [
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "value"
+                    },
+                    "props": {
+                      "text": "--",
+                      "style": {
+                        "fontSize": "18px",
+                        "fontWeight": 500
+                      }
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "type": "tag",
+                          "config": {
+                            "fallbackDelay": 2.5,
+                            "mode": "indirect",
+                            "references": {
+                              "p": "{view.params.pumpPath}"
+                            },
+                            "tagPath": "{p}/CoolingFlow"
+                          },
+                          "transforms": [
+                            {
+                              "type": "expression",
+                              "expression": "numberFormat({value}, \"0.00\")"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "unit"
+                    },
+                    "props": {
+                      "text": "L/min",
+                      "style": {
+                        "fontSize": "11px",
+                        "color": "#6b6b6b",
+                        "marginLeft": "4px"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "position": {
+              "basis": "48%",
+              "grow": 0,
+              "shrink": 0
+            }
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "m_InletPressure"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "padding": "4px 6px"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Inlet",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.container.flex",
+                "version": 0,
+                "meta": {
+                  "name": "row"
+                },
+                "props": {
+                  "direction": "row",
+                  "alignItems": "baseline"
+                },
+                "children": [
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "value"
+                    },
+                    "props": {
+                      "text": "--",
+                      "style": {
+                        "fontSize": "18px",
+                        "fontWeight": 500
+                      }
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "type": "tag",
+                          "config": {
+                            "fallbackDelay": 2.5,
+                            "mode": "indirect",
+                            "references": {
+                              "p": "{view.params.pumpPath}"
+                            },
+                            "tagPath": "{p}/InletPressure"
+                          },
+                          "transforms": [
+                            {
+                              "type": "expression",
+                              "expression": "numberFormat({value}, \"0.0\")"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "unit"
+                    },
+                    "props": {
+                      "text": "mTorr",
+                      "style": {
+                        "fontSize": "11px",
+                        "color": "#6b6b6b",
+                        "marginLeft": "4px"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "position": {
+              "basis": "48%",
+              "grow": 0,
+              "shrink": 0
+            }
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "m_N2Purge"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "padding": "4px 6px"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "N2 purge",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.container.flex",
+                "version": 0,
+                "meta": {
+                  "name": "row"
+                },
+                "props": {
+                  "direction": "row",
+                  "alignItems": "baseline"
+                },
+                "children": [
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "value"
+                    },
+                    "props": {
+                      "text": "--",
+                      "style": {
+                        "fontSize": "18px",
+                        "fontWeight": 500
+                      }
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "type": "tag",
+                          "config": {
+                            "fallbackDelay": 2.5,
+                            "mode": "indirect",
+                            "references": {
+                              "p": "{view.params.pumpPath}"
+                            },
+                            "tagPath": "{p}/N2Purge"
+                          },
+                          "transforms": [
+                            {
+                              "type": "expression",
+                              "expression": "numberFormat({value}, \"0.0\")"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "unit"
+                    },
+                    "props": {
+                      "text": "slm",
+                      "style": {
+                        "fontSize": "11px",
+                        "color": "#6b6b6b",
+                        "marginLeft": "4px"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "position": {
+              "basis": "48%",
+              "grow": 0,
+              "shrink": 0
+            }
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "m_RunHours"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "padding": "4px 6px"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Run hours",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.container.flex",
+                "version": 0,
+                "meta": {
+                  "name": "row"
+                },
+                "props": {
+                  "direction": "row",
+                  "alignItems": "baseline"
+                },
+                "children": [
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "value"
+                    },
+                    "props": {
+                      "text": "--",
+                      "style": {
+                        "fontSize": "18px",
+                        "fontWeight": 500
+                      }
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "type": "tag",
+                          "config": {
+                            "fallbackDelay": 2.5,
+                            "mode": "indirect",
+                            "references": {
+                              "p": "{view.params.pumpPath}"
+                            },
+                            "tagPath": "{p}/RunHours"
+                          },
+                          "transforms": [
+                            {
+                              "type": "expression",
+                              "expression": "numberFormat({value}, \"#,##0\")"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "ia.display.label",
+                    "version": 0,
+                    "meta": {
+                      "name": "unit"
+                    },
+                    "props": {
+                      "text": "h",
+                      "style": {
+                        "fontSize": "11px",
+                        "color": "#6b6b6b",
+                        "marginLeft": "4px"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "position": {
+              "basis": "48%",
+              "grow": 0,
+              "shrink": 0
+            }
+          }
+        ],
+        "position": {
+          "shrink": 0
+        }
+      },
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "loadBox"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "padding": "4px 12px 8px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "loadHead"
+            },
+            "props": {
+              "direction": "row"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "t"
+                },
+                "props": {
+                  "text": "Motor load vs alarm limit",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "sp"
+                },
+                "props": {
+                  "text": ""
+                },
+                "position": {
+                  "grow": 1
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "pct"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#6b6b6b"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "indirect",
+                        "references": {
+                          "p": "{view.params.pumpPath}"
+                        },
+                        "tagPath": "{p}/CurrentLoadPct"
+                      },
+                      "transforms": [
+                        {
+                          "type": "expression",
+                          "expression": "toString(toInt({value})) + \"%\""
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "track"
+            },
+            "props": {
+              "direction": "row",
+              "style": {
+                "backgroundColor": "#ececec",
+                "borderRadius": "4px",
+                "height": "10px",
+                "marginTop": "3px"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "fill"
+                },
+                "props": {
+                  "text": "",
+                  "style": {
+                    "backgroundColor": "#8fd6ad",
+                    "borderRadius": "4px"
+                  }
+                },
+                "position": {
+                  "basis": "0%",
+                  "shrink": 0
+                },
+                "propConfig": {
+                  "position.basis": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "indirect",
+                        "references": {
+                          "p": "{view.params.pumpPath}"
+                        },
+                        "tagPath": "{p}/CurrentLoadPct"
+                      },
+                      "transforms": [
+                        {
+                          "type": "expression",
+                          "expression": "toString(toInt(min(100, max(0, {value})))) + \"%\""
+                        }
+                      ]
+                    }
+                  },
+                  "props.style.backgroundColor": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "indirect",
+                        "references": {
+                          "p": "{view.params.pumpPath}"
+                        },
+                        "tagPath": "{p}/CurrentLoadPct"
+                      },
+                      "transforms": [
+                        {
+                          "type": "expression",
+                          "expression": "if({value} >= 100, \"#d9534f\", if({value} >= 87.5, \"#f5d27a\", \"#8fd6ad\"))"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ],
+            "position": {
+              "basis": "10px",
+              "shrink": 0
+            }
+          }
+        ],
+        "position": {
+          "shrink": 0
+        }
+      },
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "cmds"
+        },
+        "props": {
+          "direction": "row",
+          "style": {
+            "padding": "0 6px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "start"
+            },
+            "position": {
+              "basis": "0px",
+              "grow": 1
+            },
+            "props": {
+              "text": "Start",
+              "style": {
+                "margin": "3px",
+                "backgroundColor": "#2e7d4f",
+                "color": "#ffffff",
+                "fontSize": "13px"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tpath = self.view.params.pumpPath\n\tserver = self.view.params.mqttServer\n\tpayload = json.dumps({\"cmd\": \"start\"})\n\ttry:\n\t\ttopic = system.tag.readBlocking([path + \"/Info/CmdTopic\"])[0].value\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s %s: %s\" % (server, topic, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"pumps\").error(\"publish failed: %s\" % e)\n\t\tsystem.perspective.print(\"publish failed: %s\" % e)\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          },
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "stop"
+            },
+            "position": {
+              "basis": "0px",
+              "grow": 1
+            },
+            "props": {
+              "text": "Stop",
+              "style": {
+                "margin": "3px",
+                "backgroundColor": "#b23b3b",
+                "color": "#ffffff",
+                "fontSize": "13px"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tpath = self.view.params.pumpPath\n\tserver = self.view.params.mqttServer\n\tpayload = json.dumps({\"cmd\": \"stop\"})\n\ttry:\n\t\ttopic = system.tag.readBlocking([path + \"/Info/CmdTopic\"])[0].value\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s %s: %s\" % (server, topic, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"pumps\").error(\"publish failed: %s\" % e)\n\t\tsystem.perspective.print(\"publish failed: %s\" % e)\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          },
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "reset"
+            },
+            "position": {
+              "basis": "0px",
+              "grow": 1
+            },
+            "props": {
+              "text": "Reset",
+              "style": {
+                "margin": "3px",
+                "backgroundColor": "#5b6675",
+                "color": "#ffffff",
+                "fontSize": "13px"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tpath = self.view.params.pumpPath\n\tserver = self.view.params.mqttServer\n\tpayload = json.dumps({\"cmd\": \"reset\"})\n\ttry:\n\t\ttopic = system.tag.readBlocking([path + \"/Info/CmdTopic\"])[0].value\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s %s: %s\" % (server, topic, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"pumps\").error(\"publish failed: %s\" % e)\n\t\tsystem.perspective.print(\"publish failed: %s\" % e)\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          }
+        ],
+        "position": {
+          "shrink": 0
+        }
+      },
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "faults"
+        },
+        "props": {
+          "direction": "row",
+          "style": {
+            "padding": "0 6px 6px"
+          },
+          "alignItems": "center"
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "fl"
+            },
+            "props": {
+              "text": "Simulate",
+              "style": {
+                "fontSize": "11px",
+                "color": "#6b6b6b",
+                "margin": "0 4px"
+              }
+            }
+          },
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "wear"
+            },
+            "position": {
+              "basis": "0px",
+              "grow": 1
+            },
+            "props": {
+              "text": "Wear",
+              "style": {
+                "margin": "3px",
+                "backgroundColor": "#e6e6e6",
+                "color": "#222222",
+                "fontSize": "11px"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tpath = self.view.params.pumpPath\n\tserver = self.view.params.mqttServer\n\tpayload = json.dumps({\"fault\": \"wear\"})\n\ttry:\n\t\ttopic = system.tag.readBlocking([path + \"/Info/CmdTopic\"])[0].value\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s %s: %s\" % (server, topic, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"pumps\").error(\"publish failed: %s\" % e)\n\t\tsystem.perspective.print(\"publish failed: %s\" % e)\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          },
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "cooling"
+            },
+            "position": {
+              "basis": "0px",
+              "grow": 1
+            },
+            "props": {
+              "text": "Cooling",
+              "style": {
+                "margin": "3px",
+                "backgroundColor": "#e6e6e6",
+                "color": "#222222",
+                "fontSize": "11px"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tpath = self.view.params.pumpPath\n\tserver = self.view.params.mqttServer\n\tpayload = json.dumps({\"fault\": \"cooling\"})\n\ttry:\n\t\ttopic = system.tag.readBlocking([path + \"/Info/CmdTopic\"])[0].value\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s %s: %s\" % (server, topic, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"pumps\").error(\"publish failed: %s\" % e)\n\t\tsystem.perspective.print(\"publish failed: %s\" % e)\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          },
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "trip"
+            },
+            "position": {
+              "basis": "0px",
+              "grow": 1
+            },
+            "props": {
+              "text": "Trip",
+              "style": {
+                "margin": "3px",
+                "backgroundColor": "#e6e6e6",
+                "color": "#222222",
+                "fontSize": "11px"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tpath = self.view.params.pumpPath\n\tserver = self.view.params.mqttServer\n\tpayload = json.dumps({\"fault\": \"trip\"})\n\ttry:\n\t\ttopic = system.tag.readBlocking([path + \"/Info/CmdTopic\"])[0].value\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s %s: %s\" % (server, topic, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"pumps\").error(\"publish failed: %s\" % e)\n\t\tsystem.perspective.print(\"publish failed: %s\" % e)\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          },
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "clear"
+            },
+            "position": {
+              "basis": "0px",
+              "grow": 1
+            },
+            "props": {
+              "text": "Clear",
+              "style": {
+                "margin": "3px",
+                "backgroundColor": "#e6e6e6",
+                "color": "#222222",
+                "fontSize": "11px"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tpath = self.view.params.pumpPath\n\tserver = self.view.params.mqttServer\n\tpayload = json.dumps({\"fault\": \"clear\"})\n\ttry:\n\t\ttopic = system.tag.readBlocking([path + \"/Info/CmdTopic\"])[0].value\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s %s: %s\" % (server, topic, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"pumps\").error(\"publish failed: %s\" % e)\n\t\tsystem.perspective.print(\"publish failed: %s\" % e)\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          }
+        ],
+        "position": {
+          "shrink": 0
+        }
+      }
+    ]
+  }
+}

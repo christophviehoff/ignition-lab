@@ -1,0 +1,25 @@
+# Module binaries are large and licensed, keep them out of git.
+modules/*.modl
+
+# Gateway backups and exports
+*.gwbk
+*.zip
+*.proj
+
+# Local overrides
+docker-compose.override.yml
+.env.local
+
+# OS noise
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Local secrets. Copy .env.example to .env on a new machine.
+.env
+
+# Full stack backups are large (hundreds of MB), keep them out of git
+backups/
+
+# Scratch exports
+pump-demo/VacuumPump-export.json

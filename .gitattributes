@@ -1,0 +1,7 @@
+# Shell scripts run inside Linux containers and must stay LF, even when
+# the repo is cloned on Windows.
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sql text eol=lf
+.env text eol=lf

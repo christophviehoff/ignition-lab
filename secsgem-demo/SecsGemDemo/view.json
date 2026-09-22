@@ -1,0 +1,964 @@
+{
+  "custom": {
+    "mqttServer": "Chariot SCADA"
+  },
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "width": 1100,
+      "height": 780
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "version": 0,
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "backgroundColor": "#f2f2f2"
+      }
+    },
+    "children": [
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "header"
+        },
+        "position": {
+          "basis": "56px"
+        },
+        "props": {
+          "direction": "row",
+          "alignItems": "center",
+          "style": {
+            "padding": "8px 12px",
+            "backgroundColor": "#ffffff",
+            "borderBottom": "1px solid #dcdcdc"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "title"
+            },
+            "props": {
+              "text": "SECS/GEM demo   etch01",
+              "style": {
+                "fontSize": "20px",
+                "fontWeight": 500
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "spacer"
+            },
+            "props": {
+              "text": ""
+            },
+            "position": {
+              "grow": 1
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "onlineLabel"
+            },
+            "props": {
+              "text": "Bridge",
+              "style": {
+                "fontSize": "12px",
+                "color": "#6b6b6b",
+                "marginRight": "8px"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "online"
+            },
+            "props": {
+              "text": "unknown",
+              "style": {
+                "fontSize": "14px",
+                "fontWeight": 500,
+                "padding": "4px 12px",
+                "borderRadius": "12px",
+                "backgroundColor": "#dcdcdc",
+                "color": "#222222"
+              }
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "type": "expr",
+                  "config": {
+                    "expression": "if({[MQTT Engine]fab/etch01/status/online}, \"online\", \"offline\")"
+                  }
+                }
+              },
+              "props.style.backgroundColor": {
+                "binding": {
+                  "type": "expr",
+                  "config": {
+                    "expression": "if({[MQTT Engine]fab/etch01/status/online}, \"#8fd6ad\", \"#f0a6a6\")"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.display.image",
+        "version": 0,
+        "meta": {
+          "name": "flow"
+        },
+        "position": {
+          "basis": "215px"
+        },
+        "props": {
+          "source": "",
+          "fit": {
+            "mode": "contain"
+          },
+          "style": {
+            "margin": "6px",
+            "backgroundColor": "#ffffff",
+            "borderRadius": "6px",
+            "padding": "4px",
+            "border": "1px solid #dcdcdc"
+          }
+        },
+        "propConfig": {
+          "props.source": {
+            "binding": {
+              "type": "expr",
+              "config": {
+                "expression": "\"data:image/svg+xml;charset=utf-8,\" + \"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 200' width='900' height='200' font-family='sans-serif'>\"+ \"<defs><marker id='a' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M2 1L8 5L2 9' fill='none' stroke='dimgray' stroke-width='1.5'/></marker></defs>\"+ \"<rect x='15' y='45' width='200' height='100' rx='8' stroke='gray' stroke-width='1.5' fill='\" + if({[MQTT Engine]fab/etch01/sv/ProcessState/value} = \"PROCESSING\", \"honeydew\", \"whitesmoke\") + \"'/>\"+ \"<text x='115' y='68' text-anchor='middle' font-size='14' font-weight='600'>Tool etch01</text>\"+ \"<text x='115' y='90' text-anchor='middle' font-size='12' fill='dimgray'>\" + {[MQTT Engine]fab/etch01/sv/ProcessState/value} + \"</text>\"+ \"<text x='115' y='112' text-anchor='middle' font-size='12' fill='dimgray'>\" + numberFormat({[MQTT Engine]fab/etch01/sv/ChamberTemp/value}, \"0.0\") + \" degC  \" + numberFormat({[MQTT Engine]fab/etch01/sv/ChamberPressure/value}, \"0.00\") + \" mTorr</text>\"+ \"<text x='115' y='132' text-anchor='middle' font-size='12' fill='dimgray'>RF \" + numberFormat({[MQTT Engine]fab/etch01/sv/RFPower/value}, \"0\") + \" W</text>\"+ \"<line x1='215' y1='95' x2='270' y2='95' stroke='dimgray' stroke-width='1.5' marker-end='url(%23a)'/>\"+ \"<text x='243' y='85' text-anchor='middle' font-size='11' fill='gray'>HSMS 5000</text>\"+ \"<rect x='272' y='45' width='190' height='100' rx='8' stroke='gray' stroke-width='1.5' fill='\" + if({[MQTT Engine]fab/etch01/status/online}, \"honeydew\", \"mistyrose\") + \"'/>\"+ \"<text x='367' y='68' text-anchor='middle' font-size='14' font-weight='600'>secsgem bridge</text>\"+ \"<text x='367' y='92' text-anchor='middle' font-size='12' fill='dimgray'>GEM host</text>\"+ \"<text x='367' y='114' text-anchor='middle' font-size='12' fill='dimgray'>\" + if({[MQTT Engine]fab/etch01/status/online}, \"online\", \"offline\") + \"</text>\"+ \"<text x='367' y='134' text-anchor='middle' font-size='12' fill='dimgray'>wafers \" + toString({[MQTT Engine]fab/etch01/sv/WaferCount/value}) + \"</text>\"+ \"<line x1='462' y1='95' x2='517' y2='95' stroke='dimgray' stroke-width='1.5' marker-end='url(%23a)'/>\"+ \"<text x='490' y='85' text-anchor='middle' font-size='11' fill='gray'>MQTT</text>\"+ \"<rect x='519' y='45' width='170' height='100' rx='8' stroke='gray' stroke-width='1.5' fill='aliceblue'/>\"+ \"<text x='604' y='68' text-anchor='middle' font-size='14' font-weight='600'>EMQX</text>\"+ \"<text x='604' y='94' text-anchor='middle' font-size='12' fill='dimgray'>fab/etch01</text>\"+ \"<text x='604' y='116' text-anchor='middle' font-size='12' fill='dimgray'>sv, event, alarm</text>\"+ \"<line x1='689' y1='95' x2='744' y2='95' stroke='dimgray' stroke-width='1.5' marker-end='url(%23a)'/>\"+ \"<text x='716' y='85' text-anchor='middle' font-size='11' fill='gray'>Engine</text>\"+ \"<rect x='746' y='45' width='140' height='100' rx='8' stroke='gray' stroke-width='1.5' fill='aliceblue'/>\"+ \"<text x='816' y='68' text-anchor='middle' font-size='14' font-weight='600'>Ignition</text>\"+ \"<text x='816' y='94' text-anchor='middle' font-size='12' fill='dimgray'>tags</text>\"+ \"<text x='816' y='116' text-anchor='middle' font-size='12' fill='dimgray'>this view</text>\"+ \"<path d='M816 145 L816 175 L115 175 L115 147' fill='none' stroke='peru' stroke-width='1.5' stroke-dasharray='5 4' marker-end='url(%23a)'/>\"+ \"<text x='465' y='193' text-anchor='middle' font-size='11' fill='peru'>remote command to S2F41</text>\"+ \"</svg>\""
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "statusRow"
+        },
+        "position": {
+          "basis": "104px"
+        },
+        "props": {
+          "direction": "row",
+          "style": {
+            "padding": "4px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "state"
+            },
+            "position": {
+              "basis": "160px",
+              "grow": 1
+            },
+            "props": {
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#ffffff",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "margin": "6px",
+                "border": "1px solid #dcdcdc",
+                "overflow": "hidden"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Process state",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "value"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "26px",
+                    "fontWeight": 500
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[MQTT Engine]fab/etch01/sv/ProcessState/value"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "recipe"
+            },
+            "position": {
+              "basis": "160px",
+              "grow": 1
+            },
+            "props": {
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#ffffff",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "margin": "6px",
+                "border": "1px solid #dcdcdc",
+                "overflow": "hidden"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Recipe",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "value"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "26px",
+                    "fontWeight": 500
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[MQTT Engine]fab/etch01/sv/Recipe/value"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "wafers"
+            },
+            "position": {
+              "basis": "160px",
+              "grow": 1
+            },
+            "props": {
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#ffffff",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "margin": "6px",
+                "border": "1px solid #dcdcdc",
+                "overflow": "hidden"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Wafer count",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "value"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "26px",
+                    "fontWeight": 500
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[MQTT Engine]fab/etch01/sv/WaferCount/value"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "valueRow"
+        },
+        "position": {
+          "basis": "116px"
+        },
+        "props": {
+          "direction": "row",
+          "style": {
+            "padding": "4px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "pressure"
+            },
+            "position": {
+              "basis": "160px",
+              "grow": 1
+            },
+            "props": {
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#ffffff",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "margin": "6px",
+                "border": "1px solid #dcdcdc",
+                "overflow": "hidden"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Chamber pressure",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "value"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "26px",
+                    "fontWeight": 500
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "expr",
+                      "config": {
+                        "expression": "numberFormat({[MQTT Engine]fab/etch01/sv/ChamberPressure/value}, \"0.000\")"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "unit"
+                },
+                "props": {
+                  "text": "mTorr",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#8a8a8a"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "temp"
+            },
+            "position": {
+              "basis": "160px",
+              "grow": 1
+            },
+            "props": {
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#ffffff",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "margin": "6px",
+                "border": "1px solid #dcdcdc",
+                "overflow": "hidden"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Chamber temp",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "value"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "26px",
+                    "fontWeight": 500
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "expr",
+                      "config": {
+                        "expression": "numberFormat({[MQTT Engine]fab/etch01/sv/ChamberTemp/value}, \"0.00\")"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "unit"
+                },
+                "props": {
+                  "text": "degC",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#8a8a8a"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "rf"
+            },
+            "position": {
+              "basis": "160px",
+              "grow": 1
+            },
+            "props": {
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#ffffff",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "margin": "6px",
+                "border": "1px solid #dcdcdc",
+                "overflow": "hidden"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "RF power",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "value"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "26px",
+                    "fontWeight": 500
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "expr",
+                      "config": {
+                        "expression": "numberFormat({[MQTT Engine]fab/etch01/sv/RFPower/value}, \"0.0\")"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "unit"
+                },
+                "props": {
+                  "text": "W",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#8a8a8a"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "eventRow"
+        },
+        "position": {
+          "basis": "104px"
+        },
+        "props": {
+          "direction": "row",
+          "style": {
+            "padding": "4px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "lot"
+            },
+            "position": {
+              "basis": "160px",
+              "grow": 1
+            },
+            "props": {
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#ffffff",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "margin": "6px",
+                "border": "1px solid #dcdcdc",
+                "overflow": "hidden"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Last lot",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "value"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "26px",
+                    "fontWeight": 500
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[MQTT Engine]fab/etch01/event/WaferEnd/data/2001"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "wafer"
+            },
+            "position": {
+              "basis": "160px",
+              "grow": 1
+            },
+            "props": {
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#ffffff",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "margin": "6px",
+                "border": "1px solid #dcdcdc",
+                "overflow": "hidden"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Last wafer",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "value"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "26px",
+                    "fontWeight": 500
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "tag",
+                      "config": {
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[MQTT Engine]fab/etch01/event/WaferEnd/data/2002"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "version": 0,
+            "meta": {
+              "name": "alarmText"
+            },
+            "position": {
+              "basis": "160px",
+              "grow": 1
+            },
+            "props": {
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#ffffff",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "margin": "6px",
+                "border": "1px solid #dcdcdc",
+                "overflow": "hidden"
+              }
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "title"
+                },
+                "props": {
+                  "text": "Alarm",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#6b6b6b",
+                    "textTransform": "uppercase"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "version": 0,
+                "meta": {
+                  "name": "value"
+                },
+                "props": {
+                  "text": "--",
+                  "style": {
+                    "fontSize": "14px",
+                    "fontWeight": 400
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "expr",
+                      "config": {
+                        "expression": "if({[MQTT Engine]fab/etch01/alarm/set}, {[MQTT Engine]fab/etch01/alarm/text}, \"No active alarm\")"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "version": 0,
+        "meta": {
+          "name": "commandRow"
+        },
+        "position": {
+          "basis": "66px"
+        },
+        "props": {
+          "direction": "row",
+          "alignItems": "center",
+          "style": {
+            "padding": "4px 10px",
+            "backgroundColor": "#ffffff",
+            "borderTop": "1px solid #dcdcdc"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "version": 0,
+            "meta": {
+              "name": "cmdLabel"
+            },
+            "props": {
+              "text": "Remote commands",
+              "style": {
+                "fontSize": "12px",
+                "color": "#6b6b6b",
+                "marginRight": "10px"
+              }
+            }
+          },
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "startBtn"
+            },
+            "position": {
+              "basis": "150px"
+            },
+            "props": {
+              "text": "START",
+              "style": {
+                "margin": "6px",
+                "backgroundColor": "#2e7d4f",
+                "color": "#ffffff"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tserver = self.view.custom.mqttServer   # name from MQTT Engine > Settings > Servers\n\ttopic = \"fab/etch01/cmd\"\n\tpayload = json.dumps({\"rcmd\": \"START\"})\n\n\ttry:\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s: %s\" % (server, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"secsgem\").error(\"publish to %s failed: %s\" % (server, e))\n\t\tsystem.perspective.print(\"publish to %s failed: %s\" % (server, e))\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          },
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "stopBtn"
+            },
+            "position": {
+              "basis": "150px"
+            },
+            "props": {
+              "text": "STOP",
+              "style": {
+                "margin": "6px",
+                "backgroundColor": "#b23b3b",
+                "color": "#ffffff"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tserver = self.view.custom.mqttServer   # name from MQTT Engine > Settings > Servers\n\ttopic = \"fab/etch01/cmd\"\n\tpayload = json.dumps({\"rcmd\": \"STOP\"})\n\n\ttry:\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s: %s\" % (server, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"secsgem\").error(\"publish to %s failed: %s\" % (server, e))\n\t\tsystem.perspective.print(\"publish to %s failed: %s\" % (server, e))\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          },
+          {
+            "type": "ia.input.button",
+            "version": 0,
+            "meta": {
+              "name": "recipeBtn"
+            },
+            "position": {
+              "basis": "150px"
+            },
+            "props": {
+              "text": "PP_SELECT nitride",
+              "style": {
+                "margin": "6px",
+                "backgroundColor": "#e0e0e0",
+                "color": "#222222"
+              }
+            },
+            "events": {
+              "component": {
+                "onActionPerformed": {
+                  "config": {
+                    "script": "\timport json\n\tfrom java.lang import Throwable\n\n\tserver = self.view.custom.mqttServer   # name from MQTT Engine > Settings > Servers\n\ttopic = \"fab/etch01/cmd\"\n\tpayload = json.dumps({\"rcmd\": \"PP_SELECT\", \"params\": {\"PPID\": \"ETCH_NIT_90S\"}})\n\n\ttry:\n\t\tsystem.cirruslink.engine.publish(server, topic, bytearray(payload, \"utf-8\"), 1, False)\n\t\tsystem.perspective.print(\"sent to %s: %s\" % (server, payload))\n\texcept (Exception, Throwable) as e:\n\t\tsystem.util.getLogger(\"secsgem\").error(\"publish to %s failed: %s\" % (server, e))\n\t\tsystem.perspective.print(\"publish to %s failed: %s\" % (server, e))\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

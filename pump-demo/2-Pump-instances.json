@@ -1,0 +1,127 @@
+{
+  "tags": [
+    {
+      "name": "Fab",
+      "tagType": "Folder",
+      "tags": [
+        {
+          "name": "etch01",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "Pumps",
+              "tagType": "Folder",
+              "tags": [
+                {
+                  "name": "PP1",
+                  "tagType": "UdtInstance",
+                  "typeId": "VacuumPump",
+                  "parameters": {
+                    "Tool": {
+                      "dataType": "String",
+                      "value": "etch01"
+                    },
+                    "PumpID": {
+                      "dataType": "String",
+                      "value": "PP1"
+                    },
+                    "Role": {
+                      "dataType": "String",
+                      "value": "process"
+                    },
+                    "Provider": {
+                      "dataType": "String",
+                      "value": "MQTT Engine"
+                    }
+                  }
+                },
+                {
+                  "name": "LL1",
+                  "tagType": "UdtInstance",
+                  "typeId": "VacuumPump",
+                  "parameters": {
+                    "Tool": {
+                      "dataType": "String",
+                      "value": "etch01"
+                    },
+                    "PumpID": {
+                      "dataType": "String",
+                      "value": "LL1"
+                    },
+                    "Role": {
+                      "dataType": "String",
+                      "value": "loadlock"
+                    },
+                    "Provider": {
+                      "dataType": "String",
+                      "value": "MQTT Engine"
+                    }
+                  },
+                  "tags": [
+                    {
+                      "name": "Limits",
+                      "tagType": "Folder",
+                      "tags": [
+                        {
+                          "name": "CurrentWarn",
+                          "tagType": "AtomicTag",
+                          "value": 5.5
+                        },
+                        {
+                          "name": "CurrentAlarm",
+                          "tagType": "AtomicTag",
+                          "value": 6.5
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "TM1",
+                  "tagType": "UdtInstance",
+                  "typeId": "VacuumPump",
+                  "parameters": {
+                    "Tool": {
+                      "dataType": "String",
+                      "value": "etch01"
+                    },
+                    "PumpID": {
+                      "dataType": "String",
+                      "value": "TM1"
+                    },
+                    "Role": {
+                      "dataType": "String",
+                      "value": "transfer"
+                    },
+                    "Provider": {
+                      "dataType": "String",
+                      "value": "MQTT Engine"
+                    }
+                  },
+                  "tags": [
+                    {
+                      "name": "Limits",
+                      "tagType": "Folder",
+                      "tags": [
+                        {
+                          "name": "CurrentWarn",
+                          "tagType": "AtomicTag",
+                          "value": 5.5
+                        },
+                        {
+                          "name": "CurrentAlarm",
+                          "tagType": "AtomicTag",
+                          "value": 6.5
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

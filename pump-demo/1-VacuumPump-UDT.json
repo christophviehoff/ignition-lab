@@ -1,0 +1,381 @@
+{
+  "tags": [
+    {
+      "documentation": "Dry vacuum pump. Values come from MQTT Engine at fab/{Tool}/pump/{PumpID}. Limits are memory tags so each instance can override them.",
+      "name": "VacuumPump",
+      "parameters": {
+        "Provider": {
+          "dataType": "String",
+          "value": "MQTT Engine"
+        },
+        "PumpID": {
+          "dataType": "String",
+          "value": "PP1"
+        },
+        "Role": {
+          "dataType": "String",
+          "value": "process"
+        },
+        "Tool": {
+          "dataType": "String",
+          "value": "etch01"
+        }
+      },
+      "tagType": "UdtType",
+      "tags": [
+        {
+          "dataType": "Boolean",
+          "expression": "{[.]Running} && {[.]CoolingFlow} < {[.]Limits/MinCoolingFlow}",
+          "name": "CoolingLow",
+          "tagType": "AtomicTag",
+          "valueSource": "expr",
+          "alarms": [
+            {
+              "label": "Cooling water flow low",
+              "name": "CoolingLow",
+              "setpointA": 1.0,
+              "priority": "High"
+            }
+          ]
+        },
+        {
+          "name": "Limits",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "dataType": "Float4",
+              "engUnit": "A",
+              "name": "CurrentAlarm",
+              "tagType": "AtomicTag",
+              "value": 12.0,
+              "valueSource": "memory"
+            },
+            {
+              "dataType": "Float4",
+              "engUnit": "A",
+              "name": "CurrentWarn",
+              "tagType": "AtomicTag",
+              "value": 10.5,
+              "valueSource": "memory"
+            },
+            {
+              "dataType": "Float4",
+              "engUnit": "L/min",
+              "name": "MinCoolingFlow",
+              "tagType": "AtomicTag",
+              "value": 2.0,
+              "valueSource": "memory"
+            },
+            {
+              "dataType": "Float4",
+              "engUnit": "degC",
+              "name": "TempWarn",
+              "tagType": "AtomicTag",
+              "value": 80.0,
+              "valueSource": "memory"
+            },
+            {
+              "dataType": "Float8",
+              "engUnit": "h",
+              "name": "ServiceHours",
+              "tagType": "AtomicTag",
+              "value": 20000.0,
+              "valueSource": "memory"
+            },
+            {
+              "dataType": "Float4",
+              "engUnit": "degC",
+              "name": "TempAlarm",
+              "tagType": "AtomicTag",
+              "value": 90.0,
+              "valueSource": "memory"
+            }
+          ]
+        },
+        {
+          "dataType": "Float4",
+          "engUnit": "Hz",
+          "formatString": "#,##0.0",
+          "name": "Speed",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/Speed/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Float4",
+          "engUnit": "L/min",
+          "formatString": "#,##0.00",
+          "historyEnabled": true,
+          "historyProvider": "PostgresHistory",
+          "name": "CoolingFlow",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/CoolingFlow/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Float4",
+          "engUnit": "A",
+          "formatString": "#,##0.00",
+          "historyEnabled": true,
+          "historyProvider": "PostgresHistory",
+          "name": "MotorCurrent",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/MotorCurrent/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Float4",
+          "engUnit": "degC",
+          "formatString": "#,##0.0",
+          "historyEnabled": true,
+          "historyProvider": "PostgresHistory",
+          "name": "BodyTemp",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/BodyTemp/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Boolean",
+          "expression": "{[.]MotorCurrent} >= {[.]Limits/CurrentAlarm}",
+          "name": "CurrentHighHigh",
+          "tagType": "AtomicTag",
+          "valueSource": "expr",
+          "alarms": [
+            {
+              "label": "Motor current above alarm limit",
+              "name": "CurrentHighHigh",
+              "setpointA": 1.0,
+              "priority": "High"
+            }
+          ]
+        },
+        {
+          "dataType": "Float8",
+          "engUnit": "h",
+          "formatString": "#,##0",
+          "name": "RunHours",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/RunHours/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Float4",
+          "engUnit": "kW",
+          "formatString": "#,##0.00",
+          "historyEnabled": true,
+          "historyProvider": "PostgresHistory",
+          "name": "MotorPower",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/MotorPower/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Boolean",
+          "expression": "{[.]MotorCurrent} >= {[.]Limits/CurrentWarn}",
+          "name": "CurrentHigh",
+          "tagType": "AtomicTag",
+          "valueSource": "expr",
+          "alarms": [
+            {
+              "label": "Motor current above warning limit",
+              "name": "CurrentHigh",
+              "setpointA": 1.0
+            }
+          ]
+        },
+        {
+          "dataType": "Float4",
+          "expression": "if({[.]Limits/CurrentAlarm} > 0, 100 * {[.]MotorCurrent} / {[.]Limits/CurrentAlarm}, 0)",
+          "name": "CurrentLoadPct",
+          "tagType": "AtomicTag",
+          "valueSource": "expr"
+        },
+        {
+          "dataType": "Float4",
+          "engUnit": "mbar",
+          "formatString": "#,##0.0",
+          "name": "ExhaustPressure",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/ExhaustPressure/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Boolean",
+          "expression": "{[.]State} = \"TRIPPED\"",
+          "name": "Tripped",
+          "tagType": "AtomicTag",
+          "valueSource": "expr",
+          "alarms": [
+            {
+              "label": "Pump tripped",
+              "name": "Tripped",
+              "setpointA": 1.0,
+              "priority": "Critical"
+            }
+          ]
+        },
+        {
+          "dataType": "Float4",
+          "engUnit": "slm",
+          "formatString": "#,##0.0",
+          "name": "N2Purge",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/N2Purge/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Float4",
+          "engUnit": "mTorr",
+          "formatString": "#,##0.0",
+          "name": "InletPressure",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/InletPressure/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Boolean",
+          "expression": "{[.]BodyTemp} >= {[.]Limits/TempAlarm}",
+          "name": "TempHighHigh",
+          "tagType": "AtomicTag",
+          "valueSource": "expr",
+          "alarms": [
+            {
+              "label": "Body temperature above alarm limit",
+              "name": "TempHighHigh",
+              "setpointA": 1.0,
+              "priority": "High"
+            }
+          ]
+        },
+        {
+          "dataType": "String",
+          "name": "State",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/State/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Boolean",
+          "name": "Running",
+          "sourceTagPath": {
+            "bindType": "parameter",
+            "binding": "[{Provider}]fab/{Tool}/pump/{PumpID}/Running/value"
+          },
+          "tagType": "AtomicTag",
+          "valueSource": "reference"
+        },
+        {
+          "dataType": "Boolean",
+          "expression": "{[.]BodyTemp} >= {[.]Limits/TempWarn}",
+          "name": "TempHigh",
+          "tagType": "AtomicTag",
+          "valueSource": "expr",
+          "alarms": [
+            {
+              "label": "Body temperature above warning limit",
+              "name": "TempHigh",
+              "setpointA": 1.0
+            }
+          ]
+        },
+        {
+          "dataType": "String",
+          "expression": "if({[.]Tripped}, \"TRIPPED\", if({[.]CurrentHighHigh} || {[.]TempHighHigh} || {[.]CoolingLow}, \"ALARM\", if({[.]CurrentHigh} || {[.]TempHigh} || {[.]ServiceDue}, \"WARN\", if({[.]Running}, \"OK\", \"STOPPED\"))))",
+          "name": "Health",
+          "tagType": "AtomicTag",
+          "valueSource": "expr"
+        },
+        {
+          "name": "Info",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "dataType": "String",
+              "name": "CmdTopic",
+              "tagType": "AtomicTag",
+              "value": {
+                "bindType": "parameter",
+                "binding": "fab/{Tool}/pump/{PumpID}/cmd"
+              },
+              "valueSource": "memory"
+            },
+            {
+              "dataType": "String",
+              "name": "Tool",
+              "tagType": "AtomicTag",
+              "value": {
+                "bindType": "parameter",
+                "binding": "{Tool}"
+              },
+              "valueSource": "memory"
+            },
+            {
+              "dataType": "String",
+              "name": "Role",
+              "tagType": "AtomicTag",
+              "value": {
+                "bindType": "parameter",
+                "binding": "{Role}"
+              },
+              "valueSource": "memory"
+            },
+            {
+              "dataType": "String",
+              "name": "PumpID",
+              "tagType": "AtomicTag",
+              "value": {
+                "bindType": "parameter",
+                "binding": "{PumpID}"
+              },
+              "valueSource": "memory"
+            }
+          ]
+        },
+        {
+          "alarms": [
+            {
+              "label": "Service interval reached",
+              "name": "ServiceDue",
+              "setpointA": 1.0
+            }
+          ],
+          "dataType": "Boolean",
+          "expression": "{[.]RunHours} >= {[.]Limits/ServiceHours}",
+          "name": "ServiceDue",
+          "tagType": "AtomicTag",
+          "valueSource": "expr"
+        }
+      ]
+    }
+  ]
+}

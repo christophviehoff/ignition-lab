@@ -1,0 +1,22 @@
+# Vacuum pump simulator overlay for the Ignition lab
+#   docker compose -f docker-compose.yml -f docker-compose.secsgem.yml -f pump-demo/docker-compose.pump.yml up -d --build
+
+services:
+  pump-sim:
+    build: ./pump-demo/pump-sim
+    image: lab/pump-sim:latest
+    container_name: pump-sim
+    hostname: pump-sim
+    environment:
+      TOOL_ID: etch01
+      MQTT_HOST: emqx
+      MQTT_PORT: "1883"
+      SIM_INTERVAL: "2"
+      RUN_HOURS_PER_MINUTE: "1"
+      TZ: "${TZ:-America/Los_Angeles}"
+    depends_on:
+      emqx:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - lab
